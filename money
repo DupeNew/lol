@@ -1,9 +1,35 @@
--- This uses the modern task library to run the first script
+-- Safely run the first script (l.lua)
 task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/l.lua"))() 
+    local url_l = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/l.lua"
+    local success_l, err_l = pcall(function()
+        local scriptContent_l = game:HttpGet(url_l)
+        if scriptContent_l then
+            print("Attempting to load and run l.lua...")
+            loadstring(scriptContent_l)()
+            print("l.lua executed.")
+        else
+            warn("Failed to fetch script from:", url_l)
+        end
+    end)
+    if not success_l then
+        warn("Error executing script from", url_l .. ":", err_l)
+    end
 end)
 
--- This uses the modern task library to run the second script
+-- Safely run the second script (g.lua)
 task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/g.lua"))()
+    local url_g = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/g.lua"
+    local success_g, err_g = pcall(function()
+        local scriptContent_g = game:HttpGet(url_g)
+        if scriptContent_g then
+            print("Attempting to load and run g.lua...")
+            loadstring(scriptContent_g)()
+            print("g.lua executed.")
+        else
+            warn("Failed to fetch script from:", url_g)
+        end
+    end)
+    if not success_g then
+        warn("Error executing script from", url_g .. ":", err_g)
+    end
 end)
